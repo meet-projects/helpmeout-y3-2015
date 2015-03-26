@@ -1,7 +1,32 @@
 <?php
 
+	session_start();
 
-	if(isset($_POST['submit']) AND session_status() == PHP_SESSION_NONE){
+	mysql_connect("localhost", "root", "")or die(mysql_error());
+	mysql_select_db("HMO")or die(mysql_error());
+
+	if(isset($_SESSION['username']) AND isset($_SESSION['password'])){
+		$username = $_SESSION['username'];
+		$password = $_SESSION['password'];
+
+		$sql1 = "SELECT * FROM users WHERE Username = '".$username."' AND Password = '".$password."' LIMIT 1";
+
+		$result1 = mysql_query( $sql1)or die(mysql_error());
+
+		if(mysql_num_rows($result1) == 1){
+			echo "<script>
+			window.location.href='home.php';
+			</script>";
+
+		}else{
+			session_destroy();
+			echo"<script>
+			window.location.href='index.php';
+			</script>";
+		}
+	}
+
+	if(isset($_POST['submit'])){
 
 		$FirstName = $_POST['FirstName'];
 		$LastName  = $_POST['LastName'];
@@ -11,16 +36,17 @@
 		$RePassword = $_POST['RePassword'];
 		$Email     = $_POST['Email'];
 
-		if($Password != $RePassword){
-			echo "<script> alert('Password does not match!')
+		$sql1 = "SELECT * FROM users WHERE Username = '".$Username."' LIMIT 1";
+
+		$result1 = mysql_query( $sql1)or die(mysql_error());
+
+		if(mysql_num_rows($result1) == 1){
+			echo "<script>alert('Username already exist!'); window.location.href='index.php';</script>";
+		}elseif($Password != $RePassword){
+			echo "<script> alert('Password does not match!');
 			window.location.href='index.php';
 			</script>";
-		}else
-		{
-
-			mysql_connect("localhost", "root", "")or die(mysql_error());
-			mysql_select_db("HMO")or die(mysql_error());
-
+		}else{
 			$sql = "INSERT INTO users(`id`, `FirstName`, `LastName`, `Username`, `Password`, `Age`, `Email`) VALUES('', '$FirstName', '$LastName', '$Username', '$Password', '$Age', '$Email')";
 
 			$sql2 = "SELECT * FROM users WHERE `Username` = '$Username'";
@@ -42,6 +68,30 @@
 		}
 	}
 
+	if(isset($_POST['submit2'])){
+		$username = $_POST['username'];
+		$password = $_POST['password'];
+
+		$sql1 = "SELECT * FROM users WHERE Username = '".$username."' AND Password = '".$password."' LIMIT 1";
+	
+		$result1 = mysql_query( $sql1)or die(mysql_error());
+
+		if(mysql_num_rows($result1) == 1){
+			echo 'logged in<br>';
+			
+			session_start();
+			$_SESSION['username'] = $username;
+			$_SESSION['password'] = $password;
+
+			echo "<script>
+			window.location.href='home.php';
+			</script>";
+
+		}else{
+			echo '<script>alert("Username or Password wrong!")</script>';
+		}
+	}
+
 ?>
 
 <html>
@@ -56,9 +106,9 @@
 			<div id="header">
 				<h1>H&nbsp;e&nbsp;l&nbsp;p&nbsp;&nbsp; M&nbsp;e&nbsp;&nbsp; O&nbsp;u&nbsp;t</h1>
 				<div id="login">
-					<form method="POST" action="login.php">
+					<form method="POST" action="index.php">
 						Username:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Password:
-						<br><input type="text" name='username'>&nbsp;&nbsp;&nbsp;&nbsp;<input type="password" name='password'>&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" class='login' value="login">
+						<br><input type="text" name='username' input pattern=".{2,}"   required title="2 characters minimum">&nbsp;&nbsp;&nbsp;&nbsp;<input type="password" name='password' input pattern=".{6,}"   required title="6 characters minimum">&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" name="submit2" class='login' value="login">
 					</form>
 				</div>
 			</div>
